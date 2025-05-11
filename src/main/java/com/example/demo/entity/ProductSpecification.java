@@ -17,9 +17,6 @@ public class ProductSpecification {
 
     private String size;
     private String color;
-    private String styleProduct;
-    private String material;
-    private String Pattern;
     private int count;
 
     @JsonIgnore
