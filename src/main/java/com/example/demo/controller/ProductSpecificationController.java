@@ -20,9 +20,11 @@ import java.util.stream.Collectors;
 @RequestMapping("api/v1/productSpecifications")
 @Slf4j
 public class ProductSpecificationController {
+
     private final ProductSpecificationService productSpecificationService;
     private final ProductService productService;
     private final ProductSpecificationRepo productSpecificationRepo;
+
 
     @PostMapping("/saveOrUpdate/{productId}")
     public ResponseEntity<?> saveOrUpdate(@RequestBody ProductSpecification productSpecification, @PathVariable("productId") String productId) {
@@ -114,31 +116,31 @@ public class ProductSpecificationController {
         }
     }
 
-    @GetMapping("/getUniqueSpecifications/{productId}")
-    public ResponseEntity<?> getUniqueSpecifications(@PathVariable("productId") String productId) {
-        try {
-            Product product = productService.getById(productId);
-            if (product == null) {
-                return ResponseEntity.badRequest().body("Product not found with ID: " + productId);
-            }
+    // @GetMapping("/getUniqueSpecifications/{productId}")
+    // public ResponseEntity<?> getUniqueSpecifications(@PathVariable("productId") String productId) {
+    //     try {
+    //         Product product = productService.getById(productId);
+    //         if (product == null) {
+    //             return ResponseEntity.badRequest().body("Product not found with ID: " + productId);
+    //         }
 
-            List<ProductSpecification> specs = productSpecificationService.getByProduct(product);
-            if (specs == null || specs.isEmpty()) {
-                return ResponseEntity.ok().body(specs);
-            }
+    //         List<ProductSpecification> specs = productSpecificationService.getByProduct(product);
+    //         if (specs == null || specs.isEmpty()) {
+    //             return ResponseEntity.ok().body(specs);
+    //         }
 
-            // Chỉ lấy các thông số duy nhất dựa trên tên
-            Set<String> uniqueNames = new HashSet<>();
-            List<ProductSpecification> uniqueSpecs = specs.stream()
-                .filter(spec -> uniqueNames.add(spec.getSpecificationName()))
-                .collect(Collectors.toList());
+    //         // Chỉ lấy các thông số duy nhất dựa trên tên
+    //         Set<String> uniqueNames = new HashSet<>();
+    //         List<ProductSpecification> uniqueSpecs = specs.stream()
+    //             .filter(spec -> uniqueNames.add(spec.getSpecificationName()))
+    //             .collect(Collectors.toList());
 
-            return ResponseEntity.ok().body(uniqueSpecs);
-        } catch (Exception exception) {
-            log.error("Lỗi khi lấy thông số duy nhất: " + exception.getMessage(), exception);
-            return ResponseEntity.badRequest().body("There is an exception when execute !! --> " + exception.getMessage());
-        }
-    }
+    //         return ResponseEntity.ok().body(uniqueSpecs);
+    //     } catch (Exception exception) {
+    //         log.error("Lỗi khi lấy thông số duy nhất: " + exception.getMessage(), exception);
+    //         return ResponseEntity.badRequest().body("There is an exception when execute !! --> " + exception.getMessage());
+    //     }
+    // }
     
     // Thêm endpoint mới để lấy thông số kỹ thuật theo product_id trực tiếp
     @GetMapping("/getByProductId/{productId}")

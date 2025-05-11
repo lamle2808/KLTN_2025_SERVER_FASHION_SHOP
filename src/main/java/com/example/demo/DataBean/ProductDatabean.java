@@ -28,6 +28,8 @@ public class ProductDatabean {
 
     private List<ImageProduct> imageProducts;
 
+    private List<ProductSpecification> productSpecifications;
+
     private SaleDatabean sale;
 
     private LoHang loHang;

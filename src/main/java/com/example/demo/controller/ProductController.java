@@ -164,7 +164,7 @@ public class ProductController {
     }
 
     @GetMapping("/getListUpdate")
-    public ResponseEntity<?> getListUpdate(){
+    public ResponseEntity<?> getListUpdate() {
         try {
             List<Product> productList = productService.listNeedUpdate();
             if (productList == null) {
@@ -175,7 +175,6 @@ public class ProductController {
             return ResponseEntity.badRequest().body("There is an exception when execute !! --> " + exception);
         }
     }
-
 
     private ProductDatabean getProductDataBean(Product product) {
         ProductDatabean productDatabean = new ProductDatabean();
@@ -197,6 +196,9 @@ public class ProductController {
             saleDatabean.setDescription(sale.getDescription());
             saleDatabean.setDiscount(sale.getDiscount());
             productDatabean.setSale(saleDatabean);
+        }
+        if (null != product.getSpecifications() && !product.getSpecifications().isEmpty()) {
+            productDatabean.setProductSpecifications(product.getSpecifications());
         }
         productDatabean.setPrice(product.getPrice());
         productDatabean.setImageProducts(product.getImageProducts());

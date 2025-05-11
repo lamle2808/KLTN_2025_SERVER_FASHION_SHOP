@@ -8,7 +8,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -51,7 +53,26 @@ public class OrderDetailImpl implements OrderDetailService {
         orderDetail.setLoHangId(loHangUpdate.getId());
         orderDetail.setPrice(product.getPrice());
         product.setQuantity(slUpdate);
+        // Tạo map các specification từ orderDetail để dễ tra cứu theo id
+        Map<Integer, ProductSpecification> orderSpecMap = new HashMap<>();
+        for (ProductSpecification spec : orderDetail.getProduct().getSpecifications()) {
+            orderSpecMap.put(spec.getId(), spec);
+        }
+
+        // Cập nhật count cho từng productSpecification trong product
+        for (ProductSpecification productSpecification : product.getSpecifications()) {
+            ProductSpecification matchingSpec = orderSpecMap.get(productSpecification.getId());
+            if (matchingSpec != null) {
+                int updatedCount = productSpecification.getCount() - matchingSpec.getCount();
+                productSpecification.setCount(updatedCount);
+            }
+        }
+
+        // Lưu product, đảm bảo cascade cập nhật specifications
         productService.saveOrUpdate(product);
+
+        productService.saveOrUpdate(product);
+
         CartItem cartItem = cartItemService.getByProductAndCart(product, shoppingCart);
         cartItemService.remove(cartItem.getId());
         return orderDetailRepo.save(orderDetail);
