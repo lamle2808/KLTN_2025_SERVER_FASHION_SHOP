@@ -68,9 +68,6 @@ public class OrderDetailImpl implements OrderDetailService {
             }
         }
 
-        // Lưu product, đảm bảo cascade cập nhật specifications
-        productService.saveOrUpdate(product);
-
         productService.saveOrUpdate(product);
 
         CartItem cartItem = cartItemService.getByProductAndCart(product, shoppingCart);
