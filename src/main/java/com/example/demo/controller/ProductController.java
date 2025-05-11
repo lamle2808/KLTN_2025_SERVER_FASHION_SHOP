@@ -58,6 +58,7 @@ public class ProductController {
                     productDatabean.setSale(saleDatabean);
                     productDatabean.setImageProducts(product.getImageProducts());
                     productDatabean.setPrice(product.getPrice());
+                    productDatabean.setProductSpecifications(product.getSpecifications());
                     productDatabean.setDescription(product.getDescription());
                     productDatabean.setProductName(product.getProductName());
                     productDatabean.setQuantity(product.getQuantity());
