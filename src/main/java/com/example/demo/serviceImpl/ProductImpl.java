@@ -50,19 +50,54 @@ public class ProductImpl implements ProductService {
 
     @Override
     public Product saveOrUpdate(Product product) {
-        if (product.getId() == null){
+        int count = 0;
+        for (ProductSpecification productSpecification : product.getSpecifications()) {
+            count = count + productSpecification.getCount();
+        }
+        product.setQuantity(count);
+        
+        if (product.getId() == null) {
             Date currentDate = new Date();
             product.setImportDate(currentDate);
             product.setId(randomId());
-            int count = 0;
+            
+            List<ProductSpecification> productSpecifications = new ArrayList<>();
             for (ProductSpecification productSpecification : product.getSpecifications()) {
-                count = count + productSpecification.getCount();
+                productSpecification.setProduct(product);
+                productSpecifications.add(productSpecification);
             }
-            product.setQuantity(count);
-            Product productSaved = productRepo.save(product);
-            return productRepo.save(productSaved);
+            product.setSpecifications(productSpecifications);
+            
+            // Chỉ lưu một lần
+            return productRepo.save(product);
         }
-        return productRepo.save(product);
+        
+        // Phần code xử lý khi sản phẩm đã tồn tại
+        int i = 0;
+        List<ProductSpecification> productSpecifications = new ArrayList<>();
+        Product productUpdate = productRepo.findProductById(product.getId());
+        for (ProductSpecification productSpecification : product.getSpecifications()) {
+            if (productSpecification.getColor().equals(productUpdate.getSpecifications().get(i).getColor()) && productSpecification.getSize().equals(productUpdate.getSpecifications().get(i).getSize())) {
+                productUpdate.getSpecifications().get(i).setCount(productUpdate.getSpecifications().get(i).getCount() + productSpecification.getCount());
+                productSpecifications.add(productUpdate.getSpecifications().get(i));
+            } else{
+                productSpecifications.add(productSpecification);
+                productSpecifications.add(productUpdate.getSpecifications().get(i));
+            }
+            i++;
+            if (i >= productUpdate.getSpecifications().size()) {
+                break;
+            }
+        }
+        productUpdate.setSpecifications(productSpecifications);
+        productUpdate.setQuantity(count);
+        productUpdate.setImportDate(product.getImportDate());
+        productUpdate.setProductName(product.getProductName());
+        productUpdate.setBrand(product.getBrand());
+        productUpdate.setDescription(product.getDescription());
+        productUpdate.setPrice(product.getPrice());
+        productUpdate.setImageProducts(product.getImageProducts());
+        return productRepo.save(productUpdate);
     }
 
     @Override
@@ -91,7 +126,8 @@ public class ProductImpl implements ProductService {
     public List<Product> listNeedUpdate() {
         List<Product> productListNeedUpdate = new ArrayList<>();
         for (Product product : productRepo.findAll()) {
-            if (product.getImageProducts() == null || product.getProductName() == null || product.getBrand() == null || product.getDescription() == null
+            if (product.getImageProducts() == null || product.getProductName() == null || product.getBrand() == null
+                    || product.getDescription() == null
                     || product.getPrice() == 0) {
                 productListNeedUpdate.add(product);
             }
@@ -103,6 +139,5 @@ public class ProductImpl implements ProductService {
     public void delete(Product product) {
         productRepo.delete(product);
     }
-
 
 }

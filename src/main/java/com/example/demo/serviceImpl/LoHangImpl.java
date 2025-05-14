@@ -2,9 +2,12 @@ package com.example.demo.serviceImpl;
 
 import com.example.demo.entity.LoHang;
 import com.example.demo.entity.Product;
+import com.example.demo.entity.ProductSpecification;
 import com.example.demo.repository.LoHangRepo;
 import com.example.demo.service.LoHangService;
 import com.example.demo.service.ProductService;
+import com.example.demo.service.ProductSpecificationService;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,16 +36,13 @@ public class LoHangImpl implements LoHangService {
             if (productId == null) {
                 loHang.setProduct(productService.saveOrUpdate(loHang.getProduct()));
             } else {
-                Product product = productService.getById(productId);
-                product.setQuantity(product.getQuantity() + loHang.getQuantity());
-                loHang.setProduct(productService.saveOrUpdate(product));
+                loHang.setProduct(productService.saveOrUpdate(loHang.getProduct()));
             }
             return loHangRepo.save(loHang);
         }
         LoHang loHangUpdate = loHangRepo.findLoHangById(loHang.getId());
         if (loHangUpdate.getStatus() == 0 && loHang.getStatus() == 1) {
             Product product = loHangUpdate.getProduct();
-            product.setQuantity(product.getQuantity() + loHangUpdate.getQuantity());
             productService.saveOrUpdate(product);
         }
         loHangUpdate.setStatus(loHang.getStatus());
