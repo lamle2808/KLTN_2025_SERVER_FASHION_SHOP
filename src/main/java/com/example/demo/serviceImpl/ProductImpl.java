@@ -2,6 +2,7 @@ package com.example.demo.serviceImpl;
 
 import com.example.demo.entity.Category;
 import com.example.demo.entity.Product;
+import com.example.demo.entity.ProductSpecification;
 import com.example.demo.repository.ProductRepo;
 import com.example.demo.service.ProductService;
 import jakarta.transaction.Transactional;
@@ -53,6 +54,11 @@ public class ProductImpl implements ProductService {
             Date currentDate = new Date();
             product.setImportDate(currentDate);
             product.setId(randomId());
+            int count = 0;
+            for (ProductSpecification productSpecification : product.getSpecifications()) {
+                count = count + productSpecification.getCount();
+            }
+            product.setQuantity(count);
             Product productSaved = productRepo.save(product);
             return productRepo.save(productSaved);
         }

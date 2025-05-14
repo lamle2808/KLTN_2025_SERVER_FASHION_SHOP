@@ -21,6 +21,9 @@ public class CartItem implements Serializable {
     @JoinColumn(name = "product_id")
     private Product product;
     @ManyToOne
+    @JoinColumn(name = "product_specification_id")
+    private ProductSpecification productSpecification;
+    @ManyToOne
     @JoinColumn(name = "shoppingCart_id")
     private ShoppingCart shoppingCart;
     private int quantity;
