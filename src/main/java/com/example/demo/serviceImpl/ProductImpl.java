@@ -57,6 +57,7 @@ public class ProductImpl implements ProductService {
         product.setQuantity(count);
         
         if (product.getId() == null) {
+            // Xử lý sản phẩm mới
             Date currentDate = new Date();
             product.setImportDate(currentDate);
             product.setId(randomId());
@@ -68,28 +69,13 @@ public class ProductImpl implements ProductService {
             }
             product.setSpecifications(productSpecifications);
             
-            // Chỉ lưu một lần
             return productRepo.save(product);
         }
         
-        // Phần code xử lý khi sản phẩm đã tồn tại
-        int i = 0;
-        List<ProductSpecification> productSpecifications = new ArrayList<>();
+        // Xử lý cập nhật sản phẩm đã tồn tại
         Product productUpdate = productRepo.findProductById(product.getId());
-        for (ProductSpecification productSpecification : product.getSpecifications()) {
-            if (productSpecification.getColor().equals(productUpdate.getSpecifications().get(i).getColor()) && productSpecification.getSize().equals(productUpdate.getSpecifications().get(i).getSize())) {
-                productUpdate.getSpecifications().get(i).setCount(productUpdate.getSpecifications().get(i).getCount() + productSpecification.getCount());
-                productSpecifications.add(productUpdate.getSpecifications().get(i));
-            } else{
-                productSpecifications.add(productSpecification);
-                productSpecifications.add(productUpdate.getSpecifications().get(i));
-            }
-            i++;
-            if (i >= productUpdate.getSpecifications().size()) {
-                break;
-            }
-        }
-        productUpdate.setSpecifications(productSpecifications);
+        
+        // Cập nhật thông tin cơ bản
         productUpdate.setQuantity(count);
         productUpdate.setImportDate(product.getImportDate());
         productUpdate.setProductName(product.getProductName());
@@ -97,6 +83,22 @@ public class ProductImpl implements ProductService {
         productUpdate.setDescription(product.getDescription());
         productUpdate.setPrice(product.getPrice());
         productUpdate.setImageProducts(product.getImageProducts());
+        
+        // Xóa toàn bộ specifications cũ và thêm mới thay vì tạo danh sách mới
+        productUpdate.getSpecifications().clear();
+        
+        for (ProductSpecification newSpec : product.getSpecifications()) {
+            // Tạo đối tượng mới và thiết lập mối quan hệ với productUpdate
+            ProductSpecification spec = new ProductSpecification();
+            spec.setColor(newSpec.getColor());
+            spec.setSize(newSpec.getSize());
+            spec.setCount(newSpec.getCount());
+            spec.setProduct(productUpdate);
+            
+            // Thêm vào danh sách hiện tại
+            productUpdate.getSpecifications().add(spec);
+        }
+        
         return productRepo.save(productUpdate);
     }
 
