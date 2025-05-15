@@ -23,6 +23,9 @@ public class OrderDetail implements Serializable {
     private double price;
     private String saleId;
     @ManyToOne
+    @JoinColumn(name = "product_specification_id")
+    private ProductSpecification productSpecification;
+    @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
     @JsonIgnore

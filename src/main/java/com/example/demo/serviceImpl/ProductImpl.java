@@ -50,56 +50,61 @@ public class ProductImpl implements ProductService {
 
     @Override
     public Product saveOrUpdate(Product product) {
+        // Tính tổng số lượng
         int count = 0;
         for (ProductSpecification productSpecification : product.getSpecifications()) {
-            count = count + productSpecification.getCount();
+            count += productSpecification.getCount();
         }
         product.setQuantity(count);
         
+        // Trường hợp thêm mới sản phẩm
         if (product.getId() == null) {
-            // Xử lý sản phẩm mới
             Date currentDate = new Date();
             product.setImportDate(currentDate);
             product.setId(randomId());
             
-            List<ProductSpecification> productSpecifications = new ArrayList<>();
-            for (ProductSpecification productSpecification : product.getSpecifications()) {
-                productSpecification.setProduct(product);
-                productSpecifications.add(productSpecification);
+            // Thiết lập mối quan hệ giữa sản phẩm và thông số kỹ thuật
+            for (ProductSpecification spec : product.getSpecifications()) {
+                spec.setProduct(product);
             }
-            product.setSpecifications(productSpecifications);
             
             return productRepo.save(product);
         }
         
-        // Xử lý cập nhật sản phẩm đã tồn tại
-        Product productUpdate = productRepo.findProductById(product.getId());
+        // Trường hợp cập nhật sản phẩm
+        Product existingProduct = productRepo.findProductById(product.getId());
+        if (existingProduct == null) {
+            throw new RuntimeException("Không tìm thấy sản phẩm với ID: " + product.getId());
+        }
         
         // Cập nhật thông tin cơ bản
-        productUpdate.setQuantity(count);
-        productUpdate.setImportDate(product.getImportDate());
-        productUpdate.setProductName(product.getProductName());
-        productUpdate.setBrand(product.getBrand());
-        productUpdate.setDescription(product.getDescription());
-        productUpdate.setPrice(product.getPrice());
-        productUpdate.setImageProducts(product.getImageProducts());
+        existingProduct.setQuantity(count);
+        existingProduct.setProductName(product.getProductName());
+        existingProduct.setBrand(product.getBrand());
+        existingProduct.setDescription(product.getDescription());
+        existingProduct.setPrice(product.getPrice());
+        existingProduct.setImportDate(product.getImportDate());
+        existingProduct.setCategory(product.getCategory());
+        existingProduct.setImageProducts(product.getImageProducts());
         
-        // Xóa toàn bộ specifications cũ và thêm mới thay vì tạo danh sách mới
-        productUpdate.getSpecifications().clear();
+        // Xử lý specifications với cách an toàn hơn
+        List<ProductSpecification> existingSpecs = existingProduct.getSpecifications();
         
+        // Xóa tất cả specs hiện tại
+        existingSpecs.clear();
+        productRepo.save(existingProduct);  // Lưu trước để xóa orphans
+        
+        // Thêm specs mới
         for (ProductSpecification newSpec : product.getSpecifications()) {
-            // Tạo đối tượng mới và thiết lập mối quan hệ với productUpdate
             ProductSpecification spec = new ProductSpecification();
             spec.setColor(newSpec.getColor());
             spec.setSize(newSpec.getSize());
             spec.setCount(newSpec.getCount());
-            spec.setProduct(productUpdate);
-            
-            // Thêm vào danh sách hiện tại
-            productUpdate.getSpecifications().add(spec);
+            spec.setProduct(existingProduct);
+            existingSpecs.add(spec);
         }
         
-        return productRepo.save(productUpdate);
+        return productRepo.save(existingProduct);
     }
 
     @Override
