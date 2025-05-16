@@ -57,15 +57,43 @@ public class OrderImpl implements OrderService {
             orderDetails.add(orderDetailService.saveOrUpdate(idCart,orderDetail));
         }
         orderSaved.setOrderDetails(orderDetails);
+        
+        // Cập nhật số lượng sản phẩm và ProductSpecification
         for (OrderDetail orderDetail : order.getOrderDetails()) {
             Product product = productService.getById(orderDetail.getProduct().getId());
             int slUpdate = product.getQuantity() - orderDetail.getQuantity();
             if (slUpdate < 0) {
                 return null;
             }
+            
+            // Cập nhật số lượng sản phẩm
             product.setQuantity(slUpdate);
+            
+            // Cập nhật số lượng của ProductSpecification nếu có
+            if (orderDetail.getProductSpecification() != null) {
+                ProductSpecification productSpec = null;
+                
+                // Tìm đúng ProductSpecification cần cập nhật
+                for (ProductSpecification spec : product.getSpecifications()) {
+                    if (spec.getId() == orderDetail.getProductSpecification().getId()) {
+                        productSpec = spec;
+                        break;
+                    }
+                }
+                
+                if (productSpec != null) {
+                    int specCountUpdate = productSpec.getCount() - orderDetail.getQuantity();
+                    if (specCountUpdate < 0) {
+                        return null; // Không đủ số lượng trong kho
+                    }
+                    productSpec.setCount(specCountUpdate);
+                }
+            }
+            
+            // Lưu sản phẩm đã cập nhật
             productService.saveOrUpdate(product);
         }
+        
         return orderSaved;
     }
 

@@ -26,87 +26,92 @@ public class OrderDetailImpl implements OrderDetailService {
 
     @Override
     public OrderDetail saveOrUpdate(int idCart, OrderDetail orderDetail) {
-        // Lấy thông tin giỏ hàng và sản phẩm
-        ShoppingCart shoppingCart = shoppingCartService.getByIdCart(idCart);
-        Product product = productService.getById(orderDetail.getProduct().getId());
-        if (product == null) {
-            return null;
-        }
-        
-        // Xử lý lô hàng
-        int sl = 0;
-        LoHang loHangUpdate = null;
-        for (LoHang loHang : loHangService.getByProduct(product)) {
-            if (loHang.getStatus() == 1) {
-                loHangUpdate = loHang;
-                sl = loHang.getQuantity() - orderDetail.getQuantity();
-                break;
+        try {
+            // Lấy thông tin giỏ hàng và sản phẩm
+            ShoppingCart shoppingCart = shoppingCartService.getByIdCart(idCart);
+            Product product = productService.getById(orderDetail.getProduct().getId());
+            if (product == null) {
+                return null;
             }
-        }
-        
-        if (product.getQuantity() <= 0) {
-            return null;
-        }
-        
-        // Tìm và cập nhật ProductSpecification tương ứng
-        ProductSpecification matchedSpec = null;
-        for (ProductSpecification productSpec : product.getSpecifications()) {
-            if (orderDetail.getProductSpecification().getId() == productSpec.getId()) {
-                matchedSpec = productSpec;
-                
-                // Kiểm tra số lượng có đủ không
-                if (productSpec.getCount() < orderDetail.getQuantity()) {
-                    return null; // Không đủ số lượng
+            
+            // Xác minh và lấy ProductSpecification theo ID
+            ProductSpecification matchedSpec = null;
+            for (ProductSpecification productSpec : product.getSpecifications()) {
+                if (orderDetail.getProductSpecification().getId() == productSpec.getId()) {
+                    matchedSpec = productSpec;
+                    break;
                 }
-                
-                // Cập nhật số lượng của specification
-                int newCount = productSpec.getCount() - orderDetail.getQuantity();
-                productSpec.setCount(newCount);
-                
-                // Gán specification cho orderDetail
-                orderDetail.setProductSpecification(productSpec);
-                break;
             }
-        }
-        
-        if (matchedSpec == null) {
-            return null; // Không tìm thấy specification
-        }
-        
-        // Kiểm tra tổng số lượng
-        int slUpdate = product.getQuantity() - orderDetail.getQuantity();
-        if (slUpdate < 0 || (loHangUpdate != null && sl < 0)) {
+            
+            if (matchedSpec == null) {
+                return null; // Không tìm thấy specification
+            }
+            
+            // Kiểm tra số lượng trong specification có đủ không
+            if (matchedSpec.getCount() < orderDetail.getQuantity()) {
+                return null; // Không đủ số lượng
+            }
+            
+            // Lấy lô hàng có status = 1
+            LoHang loHangUpdate = null;
+            int loHangQuantityUpdate = 0;
+            for (LoHang loHang : loHangService.getByProduct(product)) {
+                if (loHang.getStatus() == 1) {
+                    loHangUpdate = loHang;
+                    loHangQuantityUpdate = loHang.getQuantity() - orderDetail.getQuantity();
+                    if (loHangQuantityUpdate < 0) {
+                        return null; // Không đủ số lượng trong lô hàng
+                    }
+                    break;
+                }
+            }
+            
+            // Kiểm tra số lượng tổng thể của sản phẩm
+            int productQuantityUpdate = product.getQuantity() - orderDetail.getQuantity();
+            if (productQuantityUpdate < 0) {
+                return null; // Số lượng product không đủ
+            }
+            
+            // Gán thông tin cơ bản cho OrderDetail
+            orderDetail.setOrder(orderDetail.getOrder());
+            orderDetail.setDate(orderDetail.getDate() != null ? orderDetail.getDate() : new java.util.Date());
+            orderDetail.setPrice(product.getPrice());
+            orderDetail.setProductSpecification(matchedSpec);
+            
+            // Cập nhật thông tin sale nếu có
+            SaleDetail saleDetail = saleDetailService.getByProductAndStatus(1, product);
+            if (saleDetail != null) {
+                orderDetail.setSaleId(saleDetail.getSales().getId());
+            }
+            
+            // Cập nhật lô hàng nếu có
+            if (loHangUpdate != null) {
+                loHangUpdate.setQuantity(loHangQuantityUpdate);
+                loHangService.saveOrUpdate(loHangUpdate);
+                orderDetail.setLoHangId(loHangUpdate.getId());
+            }
+            
+            // CẬP NHẬT SỐ LƯỢNG trong ProductSpecification
+            matchedSpec.setCount(matchedSpec.getCount() - orderDetail.getQuantity());
+            
+            // CẬP NHẬT SỐ LƯỢNG tổng thể của sản phẩm
+            product.setQuantity(productQuantityUpdate);
+            
+            // Lưu sản phẩm đã cập nhật (sẽ lưu cả specifications do cascade)
+            productService.saveOrUpdate(product);
+            
+            // Xóa sản phẩm khỏi giỏ hàng
+            CartItem cartItem = cartItemService.getByProductAndCart(product, shoppingCart, matchedSpec);
+            if (cartItem != null) {
+                cartItemService.remove(cartItem.getId());
+            }
+            
+            // Lưu chi tiết đơn hàng
+            return orderDetailRepo.save(orderDetail);
+        } catch (Exception e) {
+            log.error("Lỗi khi lưu OrderDetail: " + e.getMessage(), e);
             return null;
         }
-        
-        // Cập nhật thông tin sale
-        SaleDetail saleDetail = saleDetailService.getByProductAndStatus(1, product);
-        if (saleDetail != null) {
-            orderDetail.setSaleId(saleDetail.getSales().getId());
-        }
-        
-        // Cập nhật lô hàng
-        if (loHangUpdate != null) {
-            loHangUpdate.setQuantity(sl);
-            loHangService.saveOrUpdate(loHangUpdate);
-            orderDetail.setLoHangId(loHangUpdate.getId());
-        }
-        
-        // Cập nhật giá và thông tin đơn hàng
-        orderDetail.setPrice(product.getPrice());
-        
-        // Cập nhật số lượng tổng thể của sản phẩm
-        product.setQuantity(slUpdate);
-        
-        // Lưu sản phẩm đã cập nhật
-        productService.saveOrUpdate(product);
-        
-        // Xóa sản phẩm khỏi giỏ hàng
-        CartItem cartItem = cartItemService.getByProductAndCart(product, shoppingCart);
-        cartItemService.remove(cartItem.getId());
-        
-        // Lưu chi tiết đơn hàng
-        return orderDetailRepo.save(orderDetail);
     }
 
     @Override

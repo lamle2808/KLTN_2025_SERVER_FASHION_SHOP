@@ -1,6 +1,7 @@
 package com.example.demo.serviceImpl;
 
 import com.example.demo.entity.Product;
+import com.example.demo.entity.ProductSpecification;
 import com.example.demo.entity.ShoppingCart;
 import com.example.demo.entity.CartItem;
 import com.example.demo.repository.CartItemRepo;
@@ -25,7 +26,8 @@ public class CartItemImpl implements CartItemService {
     public CartItem saveOrUpDate(CartItem cartItem) {
         Calendar calendar = Calendar.getInstance();
         Date date = calendar.getTime();
-        CartItem cartItemCheck = cartItemRepo.findShoppingCartDetailByProductAndAndShoppingCart(cartItem.getProduct(), cartItem.getShoppingCart());
+        CartItem cartItemCheck = cartItemRepo.findShoppingCartDetailByProductAndAndShoppingCartAndProductSpecification(
+                cartItem.getProduct(), cartItem.getShoppingCart(), cartItem.getProductSpecification());
         if (cartItemCheck != null) {
             cartItemCheck.setQuantity(cartItem.getQuantity());
             cartItemCheck.setDate(date);
@@ -39,7 +41,8 @@ public class CartItemImpl implements CartItemService {
     public CartItem addToCart(CartItem cartItem) {
         Calendar calendar = Calendar.getInstance();
         Date date = calendar.getTime();
-        CartItem cartItemCheck = cartItemRepo.findShoppingCartDetailByProductAndAndShoppingCart(cartItem.getProduct(), cartItem.getShoppingCart());
+        CartItem cartItemCheck = cartItemRepo.findShoppingCartDetailByProductAndAndShoppingCartAndProductSpecification(
+                cartItem.getProduct(), cartItem.getShoppingCart(), cartItem.getProductSpecification());
         if (cartItemCheck != null) {
             cartItemCheck.setQuantity(cartItemCheck.getQuantity() + cartItem.getQuantity());
             cartItemCheck.setDate(date);
@@ -71,8 +74,7 @@ public class CartItemImpl implements CartItemService {
     }
 
     @Override
-    public CartItem getByProductAndCart(Product product, ShoppingCart shoppingCart) {
-        return cartItemRepo.findShoppingCartDetailByProductAndAndShoppingCart(product, shoppingCart);
+    public CartItem getByProductAndCart(Product product, ShoppingCart shoppingCart, ProductSpecification productSpecification) {
+        return cartItemRepo.findShoppingCartDetailByProductAndAndShoppingCartAndProductSpecification(product, shoppingCart, productSpecification);
     }
 }
-

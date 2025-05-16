@@ -2,6 +2,7 @@ package com.example.demo.repository;
 
 import com.example.demo.entity.Order;
 import com.example.demo.entity.OrderDetail;
+import com.example.demo.entity.ProductSpecification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,4 +13,6 @@ public interface OrderDetailRepo extends JpaRepository<OrderDetail, Integer> {
     OrderDetail findOrderDetailById(int id);
 
     List<OrderDetail> findOrderDetailByOrder(Order order);
+    
+    List<OrderDetail> findByProductSpecification(ProductSpecification productSpecification);
 }

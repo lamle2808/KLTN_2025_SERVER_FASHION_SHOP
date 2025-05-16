@@ -1,6 +1,7 @@
 package com.example.demo.repository;
 
 import com.example.demo.entity.Product;
+import com.example.demo.entity.ProductSpecification;
 import com.example.demo.entity.ShoppingCart;
 import com.example.demo.entity.CartItem;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,7 +13,7 @@ import java.util.List;
 public interface CartItemRepo extends JpaRepository<CartItem, Integer> {
     CartItem findShoppingCartDetailById(int id);
 
-    CartItem findShoppingCartDetailByProductAndAndShoppingCart(Product product, ShoppingCart shoppingCart);
+    CartItem findShoppingCartDetailByProductAndAndShoppingCartAndProductSpecification(Product product, ShoppingCart shoppingCart, ProductSpecification productSpecification);
 
     List<CartItem> findShoppingCartDetailByShoppingCart(ShoppingCart shoppingCart);
 }

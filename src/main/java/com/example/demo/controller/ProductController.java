@@ -87,6 +87,17 @@ public class ProductController {
         }
     }
 
+    @PostMapping("/update")
+    public ResponseEntity<?> update(@RequestBody Product product) {
+        try {
+            Product check = productService.updateProduct(product);
+            return ResponseEntity.ok().body(check);
+        } catch (Exception exception) {
+            System.out.println("Exception: " + exception);
+            return ResponseEntity.badRequest().body("There is an exception when execute !! --> " + exception);
+        }
+    }
+
     @GetMapping("/getAll")
     public ResponseEntity<?> getAll() {
         try {
