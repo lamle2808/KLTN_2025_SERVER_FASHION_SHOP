@@ -55,7 +55,11 @@ public class OrderImpl implements OrderService {
             orderDetail.setOrder(orderSaved);
             orderDetail.setDate(currentDate);
             orderDetail.setProductSpecification(orderDetail.getProductSpecification());
-            orderDetails.add(orderDetailService.saveOrUpdate(idCart,orderDetail));
+            OrderDetail orderDetailSaved = orderDetailService.saveOrUpdate(idCart,orderDetail);
+            if (orderDetailSaved == null) {
+                return null;
+            }
+            orderDetails.add(orderDetailSaved);
         }
         orderSaved.setOrderDetails(orderDetails);
         
@@ -174,7 +178,11 @@ public class OrderImpl implements OrderService {
         for (OrderDetail orderDetail : order.getOrderDetails()) {
             orderDetail.setOrder(orderSaved);
             orderDetail.setDate(currentDate);
-            orderDetails.add(orderDetailService.createNow(orderDetail));
+            OrderDetail orderDetailSaved = orderDetailService.createNow(orderDetail);
+            if (orderDetailSaved == null) {
+                return null;
+            }
+            orderDetails.add(orderDetailSaved);
         }
         orderSaved.setOrderDetails(orderDetails);
         return orderSaved;

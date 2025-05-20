@@ -58,10 +58,6 @@ public class OrderDetailImpl implements OrderDetailService {
             for (LoHang loHang : loHangService.getByProduct(product)) {
                 if (loHang.getStatus() == 1) {
                     loHangUpdate = loHang;
-                    loHangQuantityUpdate = loHang.getQuantity() - orderDetail.getQuantity();
-                    if (loHangQuantityUpdate < 0) {
-                        return null; // Không đủ số lượng trong lô hàng
-                    }
                     break;
                 }
             }
@@ -181,8 +177,6 @@ public class OrderDetailImpl implements OrderDetailService {
         
         // Cập nhật lô hàng
         if (loHangUpdate != null) {
-            loHangUpdate.setQuantity(sl);
-            loHangService.saveOrUpdate(loHangUpdate);
             orderDetail.setLoHangId(loHangUpdate.getId());
         }
         
