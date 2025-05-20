@@ -54,6 +54,7 @@ public class OrderImpl implements OrderService {
         for (OrderDetail orderDetail : order.getOrderDetails()) {
             orderDetail.setOrder(orderSaved);
             orderDetail.setDate(currentDate);
+            orderDetail.setProductSpecification(orderDetail.getProductSpecification());
             orderDetails.add(orderDetailService.saveOrUpdate(idCart,orderDetail));
         }
         orderSaved.setOrderDetails(orderDetails);
